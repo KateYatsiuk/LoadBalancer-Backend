@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33403.182
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoadBalancerAPI", "LoadBalancerTask\LoadBalancerAPI.csproj", "{F2783C48-E193-4C6C-B068-E5C2C46624C5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A3836D76-620D-4F58-958F-0059FF34732E} = {A3836D76-620D-4F58-958F-0059FF34732E}
+		{E7D6E827-8B5B-4325-9891-AB91DF6CFBF6} = {E7D6E827-8B5B-4325-9891-AB91DF6CFBF6}
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoadBalancer.DAL", "LoadBalancer.DAL\LoadBalancer.DAL.csproj", "{A3836D76-620D-4F58-958F-0059FF34732E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoadBalancer.BLL", "LoadBalancer.BLL\LoadBalancer.BLL.csproj", "{E7D6E827-8B5B-4325-9891-AB91DF6CFBF6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A3836D76-620D-4F58-958F-0059FF34732E} = {A3836D76-620D-4F58-958F-0059FF34732E}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6CB7A64E-3A6C-4861-AB18-132473C68386}"
+	ProjectSection(SolutionItems) = preProject
+		docker-compose.yml = docker-compose.yml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F2783C48-E193-4C6C-B068-E5C2C46624C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2783C48-E193-4C6C-B068-E5C2C46624C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2783C48-E193-4C6C-B068-E5C2C46624C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2783C48-E193-4C6C-B068-E5C2C46624C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3836D76-620D-4F58-958F-0059FF34732E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3836D76-620D-4F58-958F-0059FF34732E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3836D76-620D-4F58-958F-0059FF34732E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3836D76-620D-4F58-958F-0059FF34732E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E7D6E827-8B5B-4325-9891-AB91DF6CFBF6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E7D6E827-8B5B-4325-9891-AB91DF6CFBF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E7D6E827-8B5B-4325-9891-AB91DF6CFBF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E7D6E827-8B5B-4325-9891-AB91DF6CFBF6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8B4F8C65-AD61-4CA0-A895-21F5882A2259}
+	EndGlobalSection
+EndGlobal
