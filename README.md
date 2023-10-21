@@ -14,7 +14,8 @@ The backend is implemented using 3 layer architecture:
 - **Presentation layer** - client part, fromntend (React)
 - **Business Logic Layer (BLL)** - the part, where the general logic of the project is implemented
 - **Data Access Logic (DAL)** - the layer, which connects the logic with the database
-<img src="docs\imgs\3-layer-architecture.jpg" alt="Watch the series" width="200" height="180" border="10" />
+<img src="docs\imgs\3-layer-architecture.jpg" alt="3 layer architecture" width="200" height="180" border="10" />
 
 ## Load balancing logic
-1. Steps here
+<img src="docs\imgs\lb-architecture.jpg" alt="Load balancing architecture" width="640" height="384" border="10" />
+
