@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using FluentValidation.Results;
 using LoadBalancer.BLL.Interfaces;
+using LoadBalancer.BLL.Services;
 using LoadBalancer.DAL.DTOs.CalculationDtos;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,17 +29,8 @@ namespace LoadBalancer.LoadBalancerAPI.Controllers
             {
                 return BadRequest(validationResult.Errors);
             }
-            /*string uniqueCookieValue = Guid.NewGuid().ToString();
-            Console.WriteLine("uniqueCookieValue " + uniqueCookieValue);
-            Response.Cookies.Append("reqq", uniqueCookieValue, new CookieOptions
-            {
-                Expires = DateTime.Now.AddHours(1),
-                Path = "/",
-                HttpOnly = true,
-            });*/
             try
             {
-                Console.WriteLine("uniqueCookieValue " + request.ConnectionId);
                 int userId = await _trigonometryService.GetUserOrUserIdHereAsync(Request);
                 var calculationResult = await _trigonometryService.CalculateTrigonometryAsync(request, userId);
                 return Ok(calculationResult);
@@ -47,7 +39,11 @@ namespace LoadBalancer.LoadBalancerAPI.Controllers
             {
                 return Conflict("Operation canceled");
             }
-            catch(Exception ex)
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized("Unauthorized");
+            }
+            catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
@@ -71,10 +67,34 @@ namespace LoadBalancer.LoadBalancerAPI.Controllers
                 var calculations = await _trigonometryService.GetCalculationsByUserIdAsync(userId);
                 return Ok(calculations);
             }
-
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized("Unauthorized");
+            }
             catch
             {
                 return BadRequest();
+            }
+        }
+
+        [HttpGet("polling")]
+        public async Task<IActionResult> GetProgress([FromQuery] string datetime)
+        {
+            try
+            {
+                int userId = await _trigonometryService.GetUserOrUserIdHereAsync(Request);
+                int progress = TrigonometryService.GetProgressFromRedis(userId, datetime);
+                Console.WriteLine("currentProgress " + progress);
+                return Ok(new { progress });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized("Unauthorized");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return BadRequest(ex.Message);
             }
         }
     }

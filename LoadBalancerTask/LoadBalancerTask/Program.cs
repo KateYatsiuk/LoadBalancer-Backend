@@ -1,5 +1,4 @@
 using FluentValidation.AspNetCore;
-using LoadBalancer.BLL.SignalR;
 using LoadBalancer.DAL.Persistence;
 using LoadBalancerAPI.Extensions;
 using Microsoft.AspNetCore.DataProtection;
@@ -13,10 +12,8 @@ using System.Net.Sockets;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCustomServices();
-builder.Services.AddSignalR();
 
 var rabbitHostName = Environment.GetEnvironmentVariable("Redis_HOSTNAME") ?? "host.docker.internal";
-//var rabbitHostName = Environment.GetEnvironmentVariable("Redis_HOSTNAME") ?? "localhost";
 
 builder.Services.AddStackExchangeRedisCache(options =>
 {
@@ -40,6 +37,11 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
 });
 
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+{
+    return ConnectionMultiplexer.Connect($"{rabbitHostName},abortConnect=false");
+});
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -59,7 +61,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors(options => options
-    .WithOrigins(new[] { "http://localhost:3000", " https://localhost:7227", " http://localhost:8082", "http://localhost:8080", "http://localhost:4200", "http://localhost:5000" })
+    .WithOrigins(new[] { "http://localhost:3000", " https://localhost:7227", " http://localhost:8082", "http://localhost:8080", "http://localhost:4200", "http://localhost:5000", "http://localhost:8085", "http://localhost:6379" })
     .AllowAnyHeader()
     .AllowAnyMethod()
     .AllowCredentials()
@@ -76,7 +78,6 @@ app.UseSession();
 
 app.UseEndpoints(endpoints =>
 {
-    endpoints.MapHub<CalculationProgressHub>("/calculationProgressHub");
     endpoints.MapControllers();
     endpoints.MapGet("/", async context =>
     {

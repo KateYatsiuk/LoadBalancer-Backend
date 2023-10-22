@@ -1,11 +1,11 @@
 ﻿using LoadBalancer.BLL.Interfaces;
-using LoadBalancer.BLL.SignalR;
 using LoadBalancer.DAL.DTOs;
 using LoadBalancer.DAL.DTOs.CalculationDtos;
 using LoadBalancer.DAL.Entities;
 using LoadBalancer.DAL.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
+using StackExchange.Redis;
 
 namespace LoadBalancer.BLL.Services
 {
@@ -16,19 +16,20 @@ namespace LoadBalancer.BLL.Services
         private readonly IUserRepository _userRepository;
         private static CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
         private CancellationToken _cancellationToken = _cancellationTokenSource.Token;
-        private readonly IHubContext<CalculationProgressHub> _hubContext;
+        private readonly IConnectionMultiplexer _redisConnection;
         private int totalSum = 0;
         private bool bothToCalculate = false;
+        private int progressToReturn = 0;
 
-        public TrigonometryService(ITrigonometryRepository trigonometryRepository, IUserRepository userRepository, IJwtService jwtService, IHubContext<CalculationProgressHub> hubContext)
+        public TrigonometryService(ITrigonometryRepository trigonometryRepository, IUserRepository userRepository, IJwtService jwtService, IConnectionMultiplexer redisConnection)
         {
             _trigonometryRepository = trigonometryRepository;
             _userRepository = userRepository;
             _jwtService = jwtService;
-            _hubContext = hubContext;
+            _redisConnection = redisConnection;
         }
 
-    public async Task<TrigonometryCalculationResultDto> CalculateTrigonometryAsync(TrigonometryRequestDto request, int userId)
+        public async Task<TrigonometryCalculationResultDto> CalculateTrigonometryAsync(TrigonometryRequestDto request, int userId)
         {
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = _cancellationTokenSource.Token;
@@ -53,12 +54,12 @@ namespace LoadBalancer.BLL.Services
 
             if (request.XForSin.HasValue)
             {
-                sinResult = await CalculateSin(request.XForSin.Value, totalSum, request.N, request.ConnectionId);
+                sinResult = await CalculateSin(request.XForSin.Value, totalSum, request.N, userId, request.dateTime);
             }
 
             if (request.XForCos.HasValue)
             {
-                cosResult = await CalculateCos(request.XForCos.Value, totalSum, request.N, request.ConnectionId);
+                cosResult = await CalculateCos(request.XForCos.Value, totalSum, request.N, userId, request.dateTime);
             }
 
             var calculationResult = new TrigonometryCalculationResultDto
@@ -106,11 +107,36 @@ namespace LoadBalancer.BLL.Services
             }
             catch (Exception)
             {
-                throw new Exception("Unauthorized");
+                throw new UnauthorizedAccessException("Unauthorized");
             }
         }
 
-        private async Task<double> CalculateSin(double x, int n, int requestN, string connectionId)
+        public static int GetProgressFromRedis(int userId, string datetime)
+        {
+            var redisHostName = Environment.GetEnvironmentVariable("Redis_HOSTNAME");
+
+            if (string.IsNullOrEmpty(redisHostName))
+            {
+                throw new InvalidOperationException("Redis_HOSTNAME environment variable is not set.");
+            }
+
+            var redis = ConnectionMultiplexer.Connect(redisHostName);
+            var db = redis.GetDatabase();
+            var progress = db.StringGet($"progress:user:{userId}.{datetime}");
+            Console.WriteLine("progress:user:{userId}.{datetime}" + $"progress:user:{userId}.{datetime}");
+
+            if (progress.HasValue)
+            {
+                return int.Parse(progress);
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+
+        private async Task<double> CalculateSin(double x, int n, int requestN, int userId, string datetime)
         {
             double result = 0.0;
             
@@ -121,13 +147,16 @@ namespace LoadBalancer.BLL.Services
                 result += term;
                 double progress = (i / (double)n) * 100;
                 int roundedProgress = (int)Math.Round(progress);
-                await UpdateProgress(roundedProgress, connectionId);
+                progressToReturn = roundedProgress;
+                var redis = _redisConnection.GetDatabase();
+                TimeSpan ttl = TimeSpan.FromMinutes(5);
+                await redis.StringSetAsync($"progress:user:{userId}.{datetime}", roundedProgress, ttl);
             }
 
             return result;
         }
 
-        private async Task<double> CalculateCos(double x, int n, int requestN, string connectionId)
+        private async Task<double> CalculateCos(double x, int n, int requestN, int userId, string datetime)
         {
             double result = 0.0;
             int p = bothToCalculate ? totalSum / 2 : -1;
@@ -147,7 +176,10 @@ namespace LoadBalancer.BLL.Services
                     progress = (i / (double)n) * 100;
                 }
                 int roundedProgress = (int)Math.Round(progress);
-                await UpdateProgress(roundedProgress, connectionId);
+                progressToReturn = roundedProgress;
+                var redis = _redisConnection.GetDatabase();
+                TimeSpan ttl = TimeSpan.FromMinutes(5);
+                await redis.StringSetAsync($"progress:user:{userId}.{datetime}", roundedProgress, ttl);
             }
 
             return result;
@@ -165,17 +197,6 @@ namespace LoadBalancer.BLL.Services
             }
 
             return result;
-        }
-
-        private async Task UpdateProgress(int progress, string connectionId)
-        {
-            // var userId = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            // _hubContext.Clients.All.SendAsync("UpdateProgress", progress);
-            await _hubContext.Clients.Client(connectionId).SendAsync("UpdateProgress", progress);
-
-            // await _hubContext.Clients.Group(connectionId).SendAsync("UpdateProgress", progress);
-
         }
     }
 }

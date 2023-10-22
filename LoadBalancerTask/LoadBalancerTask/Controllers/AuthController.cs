@@ -42,6 +42,14 @@ namespace LoadBalancerAPI.Controllers
             };
 
             await _userRepository.Create(user);
+
+            var jwt = _jwtService.Generate(user.Id);
+
+            Response.Cookies.Append("jwt", jwt, new CookieOptions
+            {
+                HttpOnly = true,
+                Expires = DateTime.Now.AddHours(24)
+            });
             return Created("Success", user);
         }
 
@@ -64,7 +72,8 @@ namespace LoadBalancerAPI.Controllers
 
             Response.Cookies.Append("jwt", jwt, new CookieOptions
             {
-                HttpOnly = true
+                HttpOnly = true,
+                Expires = DateTime.Now.AddHours(24)
             });
 
             return Ok(user);

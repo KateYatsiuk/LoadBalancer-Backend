@@ -6,7 +6,6 @@ using LoadBalancer.DAL.Entities;
 using LoadBalancer.DAL.Repositories.Interfaces;
 using LoadBalancer.DAL.Repositories;
 using LoadBalancer.DAL.Validation;
-using Streetcode.BLL.Services;
 using LoadBalancer.DAL.DTOs.CalculationDtos;
 
 namespace LoadBalancerAPI.Extensions
@@ -26,7 +25,6 @@ namespace LoadBalancerAPI.Extensions
             services.AddTransient<IValidator<LoginDto>, LoginDtoValidator>();
             services.AddTransient<IValidator<TrigonometryRequestDto>, TrigonometryRequestDtoValidator>();
 
-            services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<ITrigonometryService, TrigonometryService>();
 
             return services;

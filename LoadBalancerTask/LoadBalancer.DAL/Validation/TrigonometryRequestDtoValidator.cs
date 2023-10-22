@@ -21,8 +21,8 @@ namespace LoadBalancer.DAL.Validation
                 .InclusiveBetween(Constants.X_MIN_VALUE, Constants.X_MAX_VALUE)
                 .When(dto => dto.XForCos.HasValue).WithMessage($"XForCos must be [{Constants.X_MIN_VALUE}; {Constants.X_MAX_VALUE}]");
 
-            RuleFor(dto => dto.ConnectionId)
-                .NotEmpty().WithMessage("ConnectionId is required");
+            RuleFor(dto => dto.dateTime)
+                .NotEmpty().WithMessage("dateTime is required");
         }
     }
 }
