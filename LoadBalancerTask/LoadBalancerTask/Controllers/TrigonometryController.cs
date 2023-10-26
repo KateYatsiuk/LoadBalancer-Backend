@@ -37,7 +37,7 @@ namespace LoadBalancer.LoadBalancerAPI.Controllers
             }
             catch (OperationCanceledException)
             {
-                return Conflict("Operation canceled");
+                return NoContent();
             }
             catch (UnauthorizedAccessException)
             {
